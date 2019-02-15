@@ -14,8 +14,9 @@ tf.flags.DEFINE_integer('eps', 100, """""")
 tf.flags.DEFINE_string('start_date', '2012-01-01', """train begin date""")
 tf.flags.DEFINE_string('end_date', '2013-01-01', """train end date""")
 
-start_date = pd.to_datetime(tf.flags.FLAGS.start_date)
-end_date = pd.to_datetime(tf.flags.FLAGS.end_date)
+start_date = datetime.datetime.strptime(tf.flags.FLAGS.start_date,"%Y-%m-%d")
+end_date = datetime.datetime.strptime(tf.flags.FLAGS.end_date, "%Y-%m-%d")
+
 eps = tf.flags.FLAGS.eps
 
 
