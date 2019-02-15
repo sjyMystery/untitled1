@@ -60,12 +60,12 @@ class Net:
     def _build_net(self, scope):
         w_init = tf.random_normal_initializer(0., .1)
         with tf.variable_scope('critic'):  # only critic controls the rnn update
-            cell_size = self.__cell_size
+            cell_size = 64
             s = tf.expand_dims(self.s, axis=1,
                                name='timely_input')  # [time_step, feature] => [time_step, batch, feature]
-            rnn_cell = tf.contrib.rnn.BasicRNNCell(cell_size)
+            rnn_cell = tf.keras.layers.SimpleRNNCell(cell_size)
             self.init_state = rnn_cell.zero_state(batch_size=1, dtype=tf.float32)
-            outputs, self.final_state = tf.nn.dynamic_rnn(
+            outputs, self.final_state = tf.keras.layers.RNN(
                 cell=rnn_cell, inputs=s, initial_state=self.init_state, time_major=True)
             cell_out = tf.reshape(outputs, [-1, cell_size], name='flatten_rnn_outputs')  # joined state representation
             l_c = tf.layers.dense(cell_out, 50, tf.nn.relu6, kernel_initializer=w_init, name='lc')
