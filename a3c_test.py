@@ -16,6 +16,7 @@ tf.flags.DEFINE_string('end_date', '2013-01-01', """train end date""")
 
 start_date = pd.to_datetime(tf.flags.FLAGS.start_date)
 end_date = pd.to_datetime(tf.flags.FLAGS.end_date)
+eps = tf.flags.FLAGS.eps
 
 
 def action_convert(action):
@@ -29,6 +30,5 @@ env = Env(tf.flags.FLAGS.instrument, 100000, action_convert=action_convert,
           log_per_trade=tf.flags.FLAGS.per_trade,
           start_date=start_date,
           end_date=end_date)
-a3c = Master(env.clone, n_workers=tf.flags.FLAGS.workers, time_length=tf.flags.FLAGS.time_length)
-
+a3c = Master(env.clone, n_workers=tf.flags.FLAGS.workers, time_length=tf.flags.FLAGS.time_length, train_ep=eps)
 a3c.run()
