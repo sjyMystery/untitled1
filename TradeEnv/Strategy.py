@@ -141,8 +141,8 @@ class TradeEnvStrategy(strategy.BaseStrategy):
     def onFinish(self, bars):
         super().onFinish(bars)
 
-        self.__env.put_state(('STATE', self.get_observe(bars, True)))
-        self.logger.info('start trade!')
+
+        self.logger.info('finish trade!')
         amounts = 0
         profit = 0
         win = 0
@@ -157,11 +157,13 @@ class TradeEnvStrategy(strategy.BaseStrategy):
                 win += 1
 
         self.logger.info(
-            'cash:%d equity:%d quant:%d, \t in all trades: profit:%.3f amounts:%.3f avg:%.3f win rate:%d' % (
+            '[TOTAL]cash:%d equity:%d quant:%d, \t in all trades: profit:%.3f amounts:%.3f avg:%.3f win rate:%.3f' % (
                 self.broker.cash(),
                 self.broker.equity,
                 self.broker.quantities[self.__instrument],
                 profit, amounts, profit / amounts*100, 100* win / len(self.exited_positions)))
+
+        self.__env.put_state(('STATE', self.get_observe(bars, True)))
     def onIdle(self):
         super().onIdle()
 
