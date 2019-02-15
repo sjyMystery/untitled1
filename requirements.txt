@@ -1,4 +1,3 @@
-myalgo
 pandas
 numpy
 tensorflow

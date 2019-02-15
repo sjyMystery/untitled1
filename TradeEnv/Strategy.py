@@ -1,15 +1,15 @@
 import myalgo.broker as broker
 import myalgo.strategy as strategy
 import myalgo.order as order
-from myalgo.feed.sqlitefeed import SQLiteFeed
 import numpy as np
 
 
 class TradeEnvStrategy(strategy.BaseStrategy):
-    def __init__(self, broker_: broker.BackTestBroker, instrument: str, action_generator):
+    def __init__(self, broker_: broker.BackTestBroker, instrument: str, env, log_per_trade, log_per_bin):
         super(TradeEnvStrategy, self).__init__(broker_)
 
-        self.__action_generator = action_generator
+        self.__log_per_trade = log_per_trade
+        self.__log_per_bin = log_per_bin
 
         self.history_state = np.empty([0, 9])
 
@@ -23,7 +23,26 @@ class TradeEnvStrategy(strategy.BaseStrategy):
 
         self.exited_positions = []
 
+        self.passed_bars = 0
+
+        self.__env = env
+
+    def reset(self, _):
+
+        super(TradeEnvStrategy, self).reset(_)
+
+        self.current_Trade = None
+        self.use_event_datetime_logs = True
+
+        self.rewards = 0
+        self.last_in_price = None
+
+        self.exited_positions = []
+
+        self.passed_bars = 0
+
     def get_observe(self, bars, final=False):
+
         bar = bars[self.__instrument]
         state = bar.dict
         del state["start_date"]
@@ -42,12 +61,20 @@ class TradeEnvStrategy(strategy.BaseStrategy):
 
         bar = bars[self.__instrument]
         observe = self.get_observe(bars)
-        action = self.__action_generator.send(observe)
+
+        assert observe is not None, "Observe Can't be None"
+
+        type_, action = self.__env.action_from_state(('STATE', observe))
+
+        assert type_ == 'ACTION', 'SEND STATTE SHOULD GET ACTION'
 
         self.ai_do(out_price=bar.out_price, action=action)
 
-        self.logger.info('cash:%d equity:%d quant:%d' % (
-            self.broker.cash(), self.broker.equity, self.broker.quantities[self.__instrument]))
+        if self.passed_bars % self.__log_per_bin == 0:
+            self.logger.info('cash:%d equity:%d quant:%d' % (
+                self.broker.cash(), self.broker.equity, self.broker.quantities[self.__instrument]))
+
+        self.passed_bars += 1
 
     def ai_do(self, out_price, action):
         should_sell = action[0]
@@ -58,7 +85,7 @@ class TradeEnvStrategy(strategy.BaseStrategy):
             quantity = use_cash / out_price
             self.enterLong(self.__instrument, int(use_cash / quantity))
 
-        if should_sell and self.current_Trade is not None and self.current_Trade.getEntryOrder().is_filled:
+        if should_sell and (self.current_Trade is not None) and self.current_Trade.getEntryOrder().is_filled:
             self.current_Trade.exitMarket()
             self.current_Trade = None
 
@@ -82,11 +109,11 @@ class TradeEnvStrategy(strategy.BaseStrategy):
 
         self.exited_positions.append(position)
 
-        if len(self.exited_positions) % 100 == 0:
+        if len(self.exited_positions) % self.__log_per_trade == 0 and len(self.exited_positions) > 0:
             amounts = 0
             profit = 0
             win = 0
-            for position in self.exited_positions:
+            for position in self.exited_positions[-self.__log_per_trade:]:
                 position: strategy.position.Position = position
                 entry: order.MarketOrder = position.getEntryOrder()
                 exit: order.MarketOrder = position.getExitOrder()
@@ -101,7 +128,7 @@ class TradeEnvStrategy(strategy.BaseStrategy):
                     self.broker.cash(),
                     self.broker.equity,
                     self.broker.quantities[self.__instrument],
-                    profit, amounts, profit / amounts, win))
+                    profit, amounts, profit / amounts*100, win))
 
     def onExitCanceled(self, position):
         super().onExitCanceled(position)
@@ -109,13 +136,32 @@ class TradeEnvStrategy(strategy.BaseStrategy):
     def onStart(self):
         super().onStart()
 
-        self.logger.info('start trade!')
+
 
     def onFinish(self, bars):
         super().onFinish(bars)
 
-        self.__action_generator.send(self.get_observe(bars, False))
+        self.__env.put_state(('STATE', self.get_observe(bars, True)))
+        self.logger.info('start trade!')
+        amounts = 0
+        profit = 0
+        win = 0
+        for position in self.exited_positions:
+            position: strategy.position.Position = position
+            entry: order.MarketOrder = position.getEntryOrder()
+            exit: order.MarketOrder = position.getExitOrder()
+            amounts += entry.quantity
+            delta = exit.avg_fill_price - entry.avg_fill_price
+            profit += delta * entry.quantity
+            if delta > 0:
+                win += 1
 
+        self.logger.info(
+            'cash:%d equity:%d quant:%d, \t in all trades: profit:%.3f amounts:%.3f avg:%.3f win rate:%d' % (
+                self.broker.cash(),
+                self.broker.equity,
+                self.broker.quantities[self.__instrument],
+                profit, amounts, profit / amounts*100, 100* win / len(self.exited_positions)))
     def onIdle(self):
         super().onIdle()
 
@@ -124,43 +170,3 @@ class TradeEnvStrategy(strategy.BaseStrategy):
 
         # self.profit_trade = 0
         # self.loss_trade = 0
-
-
-class TradeEnv:
-    def __init__(self, instrument, start_date, end_date, initial_cash, commission=broker.commission.TradePercentage(0),
-                 sql_filename='sqlite', table_name='bins'):
-        self.__bar_feed = SQLiteFeed(file_name=sql_filename, table_name=table_name)
-        self.__bar_feed.load_data([instrument], start_date, end_date)
-        self.__backtest_broker = broker.backtest.BackTestBroker(initial_cash, self.__bar_feed, commission=commission)
-        self.__instrument = instrument
-
-        self.__action = self.__action_generator()
-        self.__str = TradeEnvStrategy(self.__backtest_broker, instrument, self.__action)
-
-        self.__started = False
-
-    def start(self):
-        """
-            step之前必须start
-            这是为了保证generator派发的顺序
-        :return:
-        """
-        self.__str.run()
-        self.__started = True
-
-    def reset(self):
-        self.__bar_feed.reset()
-        self.__action = self.__action_generator()
-        self.__str = TradeEnvStrategy(self.__backtest_broker, self.__instrument, self.__action_generator())
-        self.__started = False
-
-    def step(self, action):
-        assert self.__started
-        return self.__action.send(action)
-
-    @staticmethod
-    def __action_generator():
-        action = None
-        while True:
-            state = yield action
-            action = yield state
