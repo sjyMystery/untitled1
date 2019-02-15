@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 
 tf.flags.DEFINE_integer('workers', 4, """co-workers num""", 1)
+tf.flags.DEFINE_string('instrument', "USDJPY", """name of instruments""")
 
 
 def action_convert(action):
@@ -13,7 +14,7 @@ def action_convert(action):
     return [should_sell, should_buy]
 
 
-env = Env('USDJPY', 100000, action_convert=action_convert, start_date=datetime.datetime(2012, 1, 1, 0, 0, 0),
+env = Env(tf.flags.FLAGS.instrument, 100000, action_convert=action_convert, start_date=datetime.datetime(2012, 1, 1, 0, 0, 0),
           end_date=datetime.datetime(2012, 2, 1, 0, 0, 0))
 a3c = Master(env.clone, n_workers=tf.flags.FLAGS.workers)
 
