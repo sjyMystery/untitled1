@@ -4,8 +4,10 @@ from A3C.str import GLOBAL_NET_SCOPE
 
 
 class Net:
-    def __init__(self, scope, n_state, n_action, a_range, sess, op_actor, op_critic, beta=0.2, global_ac=None):
+    def __init__(self, scope, n_state, n_action, a_range, sess, op_actor, op_critic, time_length=64, beta=0.2,
+                 global_ac=None):
         self.__n_state = n_state
+        self.__cell_size = time_length
         self.__n_action = n_action
         self.__a_range = a_range
         self.__sess = sess
@@ -58,7 +60,7 @@ class Net:
     def _build_net(self, scope):
         w_init = tf.random_normal_initializer(0., .1)
         with tf.variable_scope('critic'):  # only critic controls the rnn update
-            cell_size = 64
+            cell_size = self.__cell_size
             s = tf.expand_dims(self.s, axis=1,
                                name='timely_input')  # [time_step, feature] => [time_step, batch, feature]
             rnn_cell = tf.contrib.rnn.BasicRNNCell(cell_size)

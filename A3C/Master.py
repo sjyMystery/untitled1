@@ -8,7 +8,7 @@ import threading
 
 class Master:
     def __init__(self, make_env, lr_actor=0.0001, lr_critic=0.001, beta=0.01, gamma=0.9,
-                 train_ep=5,
+                 train_ep=5,time_length=24*60*7,
                  update_global_iter=5, n_workers=8):
         self.__eps = []
         self.__sess = tf.Session()
@@ -24,8 +24,8 @@ class Master:
             self.__opt_a = tf.train.RMSPropOptimizer(lr_actor, name='RMSPropA')
             self.__opt_c = tf.train.RMSPropOptimizer(lr_critic, name='RMSPropC')
             self.__global_ac = Net(GLOBAL_NET_SCOPE, n_state=n_state, n_action=n_action, a_range=a_range,
-                                   sess=self.__sess, op_actor=self.__opt_a,
-                                   op_critic=self.__opt_c, beta=beta)  # we only need its params
+                                   sess=self.__sess, op_actor=self.__opt_a,time_length=time_length,
+                                   op_critic=self.__opt_cd, beta=beta)  # we only need its params
             self.__workers = []
             # Create worker
             for i in range(n_workers):
@@ -34,6 +34,7 @@ class Master:
                     Worker(master=self, name=i_name, make_env=make_env, gamma=gamma,
                            op_actor=self.__opt_a,
                            op_critic=self.__opt_c, beta=beta, update_global_iter=update_global_iter,
+                           time_length = time_length,
                            global_ac=self.__global_ac))
 
         self.__coord = tf.train.Coordinator()

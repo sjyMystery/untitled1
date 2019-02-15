@@ -6,6 +6,7 @@ class Worker:
     def __init__(self, master, name, make_env, op_actor, op_critic, beta=0.2,
                  gamma=0.9,
                  update_global_iter=5,
+                 time_length=64,
                  global_ac=None):
         self.name = name
         self.env = make_env()
@@ -14,7 +15,7 @@ class Worker:
         n_action = self.env.action_space.shape[0]
         a_range = self.env.action_space.range
 
-        self.AC = Net(name, n_state, n_action, a_range, master.session, op_actor, op_critic, beta, global_ac)
+        self.AC = Net(name, n_state, n_action, a_range, master.session, op_actor, op_critic, time_length,beta, global_ac)
         self.__sess = master.session
         self.__update_global_iter = update_global_iter
         self.__gamma = gamma
