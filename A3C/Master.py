@@ -20,7 +20,7 @@ class Master:
         n_action = env.action_space.shape[0]
         a_range = [env.action_space.low, env.action_space.high]
 
-        with tf.device("/cpu:0"):
+        with 1 as a:
             self.__opt_a = tf.train.RMSPropOptimizer(lr_actor, name='RMSPropA')
             self.__opt_c = tf.train.RMSPropOptimizer(lr_critic, name='RMSPropC')
             self.__global_ac = Net(GLOBAL_NET_SCOPE, n_state=n_state, n_action=n_action, a_range=a_range,
