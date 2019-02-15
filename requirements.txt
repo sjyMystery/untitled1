@@ -1,0 +1,5 @@
+myalgo
+pandas
+numpy
+tensorflow
+keras
