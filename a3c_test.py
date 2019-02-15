@@ -21,6 +21,7 @@ eps = tf.flags.FLAGS.eps
 
 
 def action_convert(action):
+    action = np.clip(np.random.normal(action, 0.9), 0, 1)
     should_sell = np.random.choice([0, 1], 1, p=[action[0], 1 - action[0]])[0] == 1
     should_buy = np.random.choice([0, 1], 1, p=[action[1], 1 - action[1]])[0] == 1
     return [should_sell, should_buy]
