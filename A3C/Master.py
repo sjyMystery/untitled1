@@ -20,22 +20,21 @@ class Master:
         n_action = env.action_space.shape[0]
         a_range = [env.action_space.low, env.action_space.high]
 
-        with 1 as a:
-            self.__opt_a = tf.train.RMSPropOptimizer(lr_actor, name='RMSPropA')
-            self.__opt_c = tf.train.RMSPropOptimizer(lr_critic, name='RMSPropC')
-            self.__global_ac = Net(GLOBAL_NET_SCOPE, n_state=n_state, n_action=n_action, a_range=a_range,
-                                   sess=self.__sess, op_actor=self.__opt_a, time_length=time_length,
-                                   op_critic=self.__opt_c, beta=beta)  # we only need its params
-            self.__workers = []
-            # Create worker
-            for i in range(n_workers):
-                i_name = 'A3C_Worker_%i' % i  # worker name
-                self.__workers.append(
-                    Worker(master=self, name=i_name, make_env=make_env, gamma=gamma,
-                           op_actor=self.__opt_a,
-                           op_critic=self.__opt_c, beta=beta, update_global_iter=update_global_iter,
-                           time_length=time_length,
-                           global_ac=self.__global_ac))
+        self.__opt_a = tf.train.RMSPropOptimizer(lr_actor, name='RMSPropA')
+        self.__opt_c = tf.train.RMSPropOptimizer(lr_critic, name='RMSPropC')
+        self.__global_ac = Net(GLOBAL_NET_SCOPE, n_state=n_state, n_action=n_action, a_range=a_range,
+                               sess=self.__sess, op_actor=self.__opt_a, time_length=time_length,
+                               op_critic=self.__opt_c, beta=beta)  # we only need its params
+        self.__workers = []
+        # Create worker
+        for i in range(n_workers):
+            i_name = 'A3C_Worker_%i' % i  # worker name
+            self.__workers.append(
+                Worker(master=self, name=i_name, make_env=make_env, gamma=gamma,
+                       op_actor=self.__opt_a,
+                       op_critic=self.__opt_c, beta=beta, update_global_iter=update_global_iter,
+                       time_length=time_length,
+                       global_ac=self.__global_ac))
 
         self.__coord = tf.train.Coordinator()
         self.__sess.run(tf.global_variables_initializer())
