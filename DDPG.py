@@ -99,12 +99,12 @@ class DDPG(object):
         trainable = True if reuse is None else False
         with tf.variable_scope('Actor', reuse=reuse, custom_getter=custom_getter):
             d1 = tf.layers.dense(s, 32, activation=tf.nn.relu, name='d1', trainable=trainable)
-            # dr1 = tf.layers.dropout(d1, 0.5, name="actor_dropout_1")
-            # d2 = tf.layers.dense(dr1, 64, activation=tf.nn.relu, name='actor_dense_2', trainable=trainable)
-            # dr2 = tf.layers.dropout(d2, 0.5, name="actor_dropout_2")
-            # d3 = tf.layers.dense(dr2, 32, activation=tf.nn.relu, name='actor_dense_3', trainable=trainable)
-            # dr3 = tf.layers.dropout(d3, 0.5, name="actor_dropout_3")
-            b = tf.layers.dense(d1, self.a_dim, activation=tf.nn.sigmoid, name='b', trainable=trainable)
+            dr1 = tf.layers.dropout(d1, 0.5, name="actor_dropout_1")
+            d2 = tf.layers.dense(dr1, 64, activation=tf.nn.relu, name='actor_dense_2', trainable=trainable)
+            dr2 = tf.layers.dropout(d2, 0.5, name="actor_dropout_2")
+            d3 = tf.layers.dense(dr2, 32, activation=tf.nn.relu, name='actor_dense_3', trainable=trainable)
+            dr3 = tf.layers.dropout(d3, 0.5, name="actor_dropout_3")
+            b = tf.layers.dense(dr3, self.a_dim, activation=tf.nn.sigmoid, name='b', trainable=trainable)
             return tf.multiply(b, self.a_bound, name='scaled_a')
 
     def _build_c(self, s, a, reuse=None, custom_getter=None):
@@ -149,20 +149,18 @@ class DDPG(object):
 
     def __build_state(self, s, trainable=True):
         with tf.variable_scope('STATE', reuse=tf.AUTO_REUSE):
-            s = tf.cast(s,dtype=tf.float16)
-            s = tf.cast(s,dtype=tf.float32)
-            # lstm = tf.keras.layers.LSTM(1)(s)
-            # conv0 = tf.layers.conv1d(s, 64, 3, activation='tanh', trainable=trainable)
-            # dp0 = tf.layers.dropout(conv0, 0.5, name="state_dp2")
-            # conv1 = tf.layers.conv1d(dp0, 32, 3, activation='tanh', trainable=trainable)
-            # dp1 = tf.layers.dropout(conv1, 0.5, name="state_dp2")
-            # conv2 = tf.layers.conv1d(dp1, 32, 3, activation='relu', trainable=trainable)
-            # dp2 = tf.layers.dropout(conv2, 0.5, name="state_dp2")
-            # conv3 = tf.layers.conv1d(dp2, 16, 3, activation='relu', trainable=trainable)
-            # dp3 = tf.layers.dropout(conv3, 0.5, name="state_dp3")
-            # conv4 = tf.layers.conv1d(dp3, 16, 3, activation='relu', trainable=trainable)
-            # dp4 = tf.layers.dropout(conv4, 0.5, name="state_dp4")
-            # dense1 = tf.layers.dense(dp4, units=128, activation=tf.nn.relu, name='lstm_dense1_s')
-            flatten = tf.layers.flatten(s, name='state_flatten')
+            lstm = tf.keras.layers.LSTM(1)(s)
+            conv0 = tf.layers.conv1d(s, 64, 3, activation='tanh', trainable=trainable)
+            dp0 = tf.layers.dropout(conv0, 0.5, name="state_dp2")
+            conv1 = tf.layers.conv1d(dp0, 32, 3, activation='tanh', trainable=trainable)
+            dp1 = tf.layers.dropout(conv1, 0.5, name="state_dp2")
+            conv2 = tf.layers.conv1d(dp1, 32, 3, activation='relu', trainable=trainable)
+            dp2 = tf.layers.dropout(conv2, 0.5, name="state_dp2")
+            conv3 = tf.layers.conv1d(dp2, 16, 3, activation='relu', trainable=trainable)
+            dp3 = tf.layers.dropout(conv3, 0.5, name="state_dp3")
+            conv4 = tf.layers.conv1d(dp3, 16, 3, activation='relu', trainable=trainable)
+            dp4 = tf.layers.dropout(conv4, 0.5, name="state_dp4")
+            dense1 = tf.layers.dense(dp4, units=128, activation=tf.nn.relu, name='lstm_dense1_s')
+            flatten = tf.layers.flatten(dense1, name='state_flatten')
             dense2 = tf.layers.dense(flatten, units=32, name='lstm_dense2_s')
         return dense2
