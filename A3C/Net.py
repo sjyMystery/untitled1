@@ -63,9 +63,9 @@ class Net:
             cell_size = 64
             s = tf.expand_dims(self.s, axis=1,
                                name='timely_input')  # [time_step, feature] => [time_step, batch, feature]
-            rnn_cell = tf.keras.layers.SimpleRNNCell(cell_size)
-            self.init_state = rnn_cell.get_initial_state(batch_size=1, dtype=tf.float32)
-            outputs, self.final_state = tf.keras.layers.RNN(
+            rnn_cell = tf.nn.rnn_cell.BasicRNNCell(cell_size)
+            self.init_state = rnn_cell.zero_state(batch_size=1, dtype=tf.float32)
+            outputs, self.final_state = tf.nn.dynamic_rnn(
                 cell=rnn_cell, inputs=s, initial_state=self.init_state, time_major=True)
             cell_out = tf.reshape(outputs, [-1, cell_size], name='flatten_rnn_outputs')  # joined state representation
             l_c = tf.layers.dense(cell_out, 50, tf.nn.relu6, kernel_initializer=w_init, name='lc')
