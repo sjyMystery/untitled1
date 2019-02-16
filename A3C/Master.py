@@ -24,7 +24,7 @@ class Master:
             self.__opt_a = tf.train.RMSPropOptimizer(lr_actor, name='RMSPropA')
             self.__opt_c = tf.train.RMSPropOptimizer(lr_critic, name='RMSPropC')
 
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             self.__global_ac = Net(GLOBAL_NET_SCOPE, n_state=n_state, n_action=n_action, a_range=a_range,
                                    sess=self.__sess, op_actor=self.__opt_a, time_length=time_length,
                                    op_critic=self.__opt_c, beta=beta)  # we only need its params
