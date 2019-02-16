@@ -54,8 +54,8 @@ class Master:
             worker.work()
 
         with multiprocessing.Pool(len(self.__workers)) as pool:
-            pool.map_async(_work, self.__workers).wait()
-
+            result=pool.map(_work, self.__workers)
+            print(result)
     @property
     def coord(self):
         return self.__coord
