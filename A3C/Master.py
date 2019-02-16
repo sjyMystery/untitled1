@@ -7,6 +7,10 @@ import threading
 import multiprocessing
 
 
+def _work(worker):
+    worker.work()
+
+
 class Master:
     def __init__(self, make_env, lr_actor=0.0001, lr_critic=0.001, beta=0.01, gamma=0.9,
                  train_ep=5, time_length=24 * 60 * 7,
@@ -50,12 +54,10 @@ class Master:
         return self.__sess
 
     def run(self):
-        def _work(worker):
-            worker.work()
-
         with multiprocessing.Pool(len(self.__workers)) as pool:
-            result=pool.map(_work, self.__workers)
+            result = pool.map(_work, self.__workers)
             print(result)
+
     @property
     def coord(self):
         return self.__coord
