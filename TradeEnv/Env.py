@@ -5,7 +5,7 @@ from TradeEnv.Strategy import TradeEnvStrategy
 
 from Space import Box, Space
 from queue import Queue
-import multiprocessing
+import threading
 
 
 class Env:
@@ -35,7 +35,7 @@ class Env:
                                       log_per_trade=log_per_trade)
 
         self.__env_name = env_name
-        self.__backtest_thread = multiprocessing.Process(target=self.__str.run, name=env_name + 'BackTest Work Thread')
+        self.__backtest_thread = threading.Thread(target=self.__str.run, name=env_name + 'BackTest Work Thread')
 
         self.__started = False
 
@@ -79,7 +79,7 @@ class Env:
             self.__str.stop()
             self.__backtest_thread.join(timeout=timeout)
             self.__bar_feed.reset()
-            self.__backtest_thread = multiprocessing.Process(target=self.__str.run, name=self.__env_name + 'BackTest Work Thread')
+            self.__backtest_thread = threading.Thread(target=self.__str.run, name=self.__env_name + 'BackTest Work Thread')
             self.__action_queue = Queue()
             self.__state_queue = Queue()
         return self.start()

@@ -50,12 +50,13 @@ class Master:
         return self.__sess
 
     def run(self):
-        for worker in self.__workers:
-            t = multiprocessing.Process(target=(lambda: worker.work()))
-            t.start()
-            self.__worker_threads.append(t)
 
-        self.__coord.join(self.__worker_threads)
+        def _work(worker):
+            worker.work()
+
+        with multiprocessing.Pool(len(self.__workers)) as pool:
+            pool.map_async(_work, self.__workers)
+            pool.join()
 
     @property
     def coord(self):
