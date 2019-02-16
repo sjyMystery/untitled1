@@ -50,13 +50,11 @@ class Master:
         return self.__sess
 
     def run(self):
-
         def _work(worker):
             worker.work()
 
         with multiprocessing.Pool(len(self.__workers)) as pool:
-            pool.map_async(_work, self.__workers)
-            pool.join()
+            pool.map_async(_work, self.__workers).wait()
 
     @property
     def coord(self):
