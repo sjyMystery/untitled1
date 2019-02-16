@@ -4,6 +4,7 @@ from A3C.Worker import Worker
 from A3C.str import GLOBAL_NET_SCOPE
 
 import threading
+import multiprocessing
 
 
 class Master:
@@ -50,7 +51,7 @@ class Master:
 
     def run(self):
         for worker in self.__workers:
-            t = threading.Thread(target=(lambda: worker.work()))
+            t = multiprocessing.Process(target=(lambda: worker.work()))
             t.start()
             self.__worker_threads.append(t)
 
