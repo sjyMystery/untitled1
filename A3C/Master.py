@@ -32,7 +32,7 @@ class Master:
         # Create worker
         for i in range(n_workers):
             i_name = 'A3C_Worker_%i' % i  # worker name
-            with tf.device(f'/gpu:{i % 8}'):
+            with tf.device(f'/cpu:0'):
                 self.__workers.append(
                     Worker(master=self, name=i_name, make_env=make_env, gamma=gamma,
                            op_actor=self.__opt_a,
