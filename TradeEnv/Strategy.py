@@ -128,7 +128,7 @@ class TradeEnvStrategy(strategy.BaseStrategy):
                     self.broker.cash(),
                     self.broker.equity,
                     self.broker.quantities[self.__instrument],
-                    profit, amounts, profit / amounts*100, win))
+                    profit, amounts, profit / amounts * 100, win))
 
     def onExitCanceled(self, position):
         super().onExitCanceled(position)
@@ -136,11 +136,8 @@ class TradeEnvStrategy(strategy.BaseStrategy):
     def onStart(self):
         super().onStart()
 
-
-
     def onFinish(self, bars):
         super().onFinish(bars)
-
 
         self.logger.info('finish trade!')
         amounts = 0
@@ -161,9 +158,11 @@ class TradeEnvStrategy(strategy.BaseStrategy):
                 self.broker.cash(),
                 self.broker.equity,
                 self.broker.quantities[self.__instrument],
-                profit, amounts, profit / amounts*100, 100* win / len(self.exited_positions)))
+                profit, amounts, profit / amounts * 100 if amounts>0 else 0,
+                100 * win / len(self.exited_positions) if len(self.exited_positions) > 0 else 0))
 
         self.__env.put_state(('STATE', self.get_observe(bars, True)))
+
     def onIdle(self):
         super().onIdle()
 

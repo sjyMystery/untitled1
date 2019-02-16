@@ -6,7 +6,7 @@ from keras.models import *
 from keras.utils import *
 from keras.preprocessing import sequence
 
-bar_feed = SQLiteFeed('bins','./sqlite')
+bar_feed = SQLiteFeed('bins', './sqlite')
 bar_feed.load_data(['USDJPY'], datetime.datetime(2013, 1, 1, 0, 0, 0), datetime.datetime(2018, 6, 1, 0, 0, 0))
 df = DataFrame([bar['USDJPY'].dict for bar in bar_feed.bars])
 generator = sequence.TimeseriesGenerator(
@@ -15,10 +15,10 @@ generator = sequence.TimeseriesGenerator(
 
 model = Sequential()
 
-model.add(LSTM(32,dropout=0.1))
+model.add(LSTM(32, dropout=0.1))
 model.add(Dense(256, activation='tanh'))
 model.add(Dense(256, activation='relu'))
 model.add(Dense(1))
-model.build(input_shape=(None,360, 8))
+model.build(input_shape=(None, 360, 8))
 model.compile('adam', loss='mape', metrics=['mape'])
 model.fit_generator(generator, epochs=10, use_multiprocessing=True, workers=8)

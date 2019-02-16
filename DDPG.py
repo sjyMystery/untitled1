@@ -149,18 +149,8 @@ class DDPG(object):
 
     def __build_state(self, s, trainable=True):
         with tf.variable_scope('STATE', reuse=tf.AUTO_REUSE):
-            lstm = tf.keras.layers.LSTM(1)(s)
-            conv0 = tf.layers.conv1d(s, 64, 3, activation='tanh', trainable=trainable)
-            dp0 = tf.layers.dropout(conv0, 0.5, name="state_dp2")
-            conv1 = tf.layers.conv1d(dp0, 32, 3, activation='tanh', trainable=trainable)
-            dp1 = tf.layers.dropout(conv1, 0.5, name="state_dp2")
-            conv2 = tf.layers.conv1d(dp1, 32, 3, activation='relu', trainable=trainable)
-            dp2 = tf.layers.dropout(conv2, 0.5, name="state_dp2")
-            conv3 = tf.layers.conv1d(dp2, 16, 3, activation='relu', trainable=trainable)
-            dp3 = tf.layers.dropout(conv3, 0.5, name="state_dp3")
-            conv4 = tf.layers.conv1d(dp3, 16, 3, activation='relu', trainable=trainable)
-            dp4 = tf.layers.dropout(conv4, 0.5, name="state_dp4")
-            dense1 = tf.layers.dense(dp4, units=128, activation=tf.nn.relu, name='lstm_dense1_s')
-            flatten = tf.layers.flatten(dense1, name='state_flatten')
-            dense2 = tf.layers.dense(flatten, units=32, name='lstm_dense2_s')
+
+            flatten = tf.layers.flatten(s, name='state_flatten')
+            dense1 = tf.layers.dense(flatten, units=128, activation=tf.nn.relu, name='lstm_dense1_s')
+            dense2 = tf.layers.dense(dense1, units=32, name='lstm_dense2_s')
         return dense2
