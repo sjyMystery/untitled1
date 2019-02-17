@@ -21,7 +21,8 @@ update_steps = tf.flags.FLAGS.update_steps
 max_eps = tf.flags.FLAGS.eps
 time_length = tf.flags.FLAGS.time_length
 
-rate = 0.1
+rate = 0.01
+
 
 def action_convert(action_):
     action_ = np.clip(np.random.normal(action_, rate), 0, 1)
@@ -51,5 +52,5 @@ while eps < max_eps:
             ddpg.learn()
         state = state_
 
-    rate *= 0.99
+    rate *= 0.9
     eps += 1

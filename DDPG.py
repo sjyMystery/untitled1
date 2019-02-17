@@ -4,7 +4,7 @@ import tensorflow as tf
 # reproducible
 np.random.seed(1)
 tf.set_random_seed(1)
-config = tf.ConfigProto(allow_soft_placement=True, device_count={"cpu":48})
+config = tf.ConfigProto(allow_soft_placement=True, device_count={"cpu": 48})
 config.gpu_options.allow_growth = True
 config.gpu_options.per_process_gpu_memory_fraction = 1.0
 
@@ -99,13 +99,8 @@ class DDPG(object):
         trainable = True if reuse is None else False
         with tf.variable_scope('Actor', reuse=reuse, custom_getter=custom_getter):
             d1 = tf.layers.dense(s, 32, activation=tf.nn.relu, name='d1', trainable=trainable)
-            dr1 = tf.layers.dropout(d1, 0.5, name="actor_dropout_1")
-            d2 = tf.layers.dense(dr1, 64, activation=tf.nn.relu, name='actor_dense_2', trainable=trainable)
-            dr2 = tf.layers.dropout(d2, 0.5, name="actor_dropout_2")
-            d3 = tf.layers.dense(dr2, 32, activation=tf.nn.relu, name='actor_dense_3', trainable=trainable)
-            dr3 = tf.layers.dropout(d3, 0.5, name="actor_dropout_3")
-            b = tf.layers.dense(dr3, self.a_dim, activation=tf.nn.sigmoid, name='b', trainable=trainable)
-            return tf.multiply(b, self.a_bound, name='scaled_a')
+            dr1 = tf.layers.dense(d1, self.a_dim, activation=tf.nn.sigmoid)
+            return tf.multiply(dr1, self.a_bound, name='scaled_a')
 
     def _build_c(self, s, a, reuse=None, custom_getter=None):
         trainable = True if reuse is None else False
@@ -149,8 +144,7 @@ class DDPG(object):
 
     def __build_state(self, s, trainable=True):
         with tf.variable_scope('STATE', reuse=tf.AUTO_REUSE):
-
             flatten = tf.layers.flatten(s, name='state_flatten')
-            dense1 = tf.layers.dense(flatten, units=128, activation=tf.nn.relu, name='lstm_dense1_s')
+            dense1 = tf.layers.dense(flatten, units=32, activation=tf.nn.relu6, name='lstm_dense1_s')
             dense2 = tf.layers.dense(dense1, units=32, name='lstm_dense2_s')
         return dense2

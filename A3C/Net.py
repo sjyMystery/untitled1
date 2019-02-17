@@ -60,7 +60,7 @@ class Net:
     def _build_net(self, scope):
         w_init = tf.random_normal_initializer(0., .1)
         with tf.variable_scope('critic'):  # only critic controls the rnn update
-            cell_size = 64
+            cell_size = self.__cell_size
             s = tf.expand_dims(self.s, axis=1,
                                name='timely_input')  # [time_step, feature] => [time_step, batch, feature]
             rnn_cell = tf.nn.rnn_cell.BasicRNNCell(cell_size)

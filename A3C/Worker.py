@@ -30,7 +30,6 @@ class Worker:
             s = self.env.reset()
 
             assert s is not None, "Get None State"
-
             ep_r = 0
             rnn_state = self.__sess.run(self.AC.init_state)  # zero rnn state at beginning
             keep_state = rnn_state.copy()  # keep rnn state for updating global net
@@ -38,6 +37,8 @@ class Worker:
             while not done:
 
                 a, rnn_state_ = self.AC.choose_action(s, rnn_state)  # get the action and next rnn state
+                # if(total_step>1000):
+                #     print(a,rnn_state_)
                 s_, r, done = self.env.step(a)
                 ep_r += r
                 buffer_s.append(s)
